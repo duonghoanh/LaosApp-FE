@@ -21,14 +21,7 @@ export default function Home() {
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
 
-  const handleCreateRoom = async () => {
-    if (!isAuthenticated || !user) {
-      toast.error("Please login first");
-      setPendingAction(() => handleCreateRoom);
-      setShowAuthModal(true);
-      return;
-    }
-
+  const executeCreateRoom = async () => {
     if (!roomName.trim()) {
       toast.error("Please enter a room name");
       return;
@@ -58,14 +51,21 @@ export default function Home() {
     }
   };
 
-  const handleJoinRoom = async () => {
+  const handleCreateRoom = async () => {
     if (!isAuthenticated || !user) {
       toast.error("Please login first");
-      setPendingAction(() => handleJoinRoom);
+      setPendingAction(() => executeCreateRoom);
       setShowAuthModal(true);
       return;
     }
 
+    await executeCreateRoom();
+  };
+
+  const executeJoinRoom = async () => {
+    // Get fresh user from store after login
+    const currentUser = useAuthStore.getState().user;
+    
     if (!roomCode.trim()) {
       toast.error("Please enter a room code");
       return;
@@ -78,7 +78,7 @@ export default function Home() {
         variables: {
           input: {
             code: roomCode,
-            nickname: user?.nickname || "Guest",
+            nickname: currentUser?.nickname || "Guest",
           },
         },
       });
@@ -93,6 +93,17 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleJoinRoom = async () => {
+    if (!isAuthenticated || !user) {
+      toast.error("Please login first");
+      setPendingAction(() => executeJoinRoom);
+      setShowAuthModal(true);
+      return;
+    }
+
+    await executeJoinRoom();
   };
 
   return (
