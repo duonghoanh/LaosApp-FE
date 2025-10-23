@@ -22,8 +22,24 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validation
     if (!nickname.trim()) {
       toast.error("Please enter a nickname");
+      return;
+    }
+
+    if (!email.trim()) {
+      toast.error("Please enter an email");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
@@ -33,9 +49,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         mutation: REGISTER,
         variables: {
           input: {
-            email: email || undefined,
+            email,
             nickname,
-            password: password || undefined,
+            password,
           },
         },
       });
@@ -83,7 +99,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email (Optional)
+              Email *
             </label>
             <div className="relative">
               <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -93,13 +109,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
               />
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password (Optional)
+              Password *{" "}
+              <span className="text-xs text-gray-500">(min 6 characters)</span>
             </label>
             <div className="relative">
               <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -108,7 +126,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                minLength={6}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
               />
             </div>
           </div>
