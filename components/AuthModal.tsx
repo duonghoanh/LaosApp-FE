@@ -10,9 +10,10 @@ import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void | Promise<void>;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
@@ -59,9 +60,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
       if (data?.register) {
         login(data.register.user, data.register.accessToken);
         toast.success("Welcome to LuckyRoom! 🎉");
+
+        // Reset Apollo Client cache to apply new token
+        await apolloClient.resetStore();
+
         onClose();
-        // Reload to apply new token to Apollo Client
-        window.location.reload();
+
+        // Execute pending action if provided
+        if (onSuccess) {
+          await onSuccess();
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Registration failed");

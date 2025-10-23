@@ -15,12 +15,16 @@ export default function Home() {
   const [roomCode, setRoomCode] = useState("");
   const [roomName, setRoomName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    (() => Promise<void>) | null
+  >(null);
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
 
   const handleCreateRoom = async () => {
     if (!isAuthenticated || !user) {
       toast.error("Please login first");
+      setPendingAction(() => handleCreateRoom);
       setShowAuthModal(true);
       return;
     }
@@ -57,6 +61,7 @@ export default function Home() {
   const handleJoinRoom = async () => {
     if (!isAuthenticated || !user) {
       toast.error("Please login first");
+      setPendingAction(() => handleJoinRoom);
       setShowAuthModal(true);
       return;
     }
@@ -224,7 +229,16 @@ export default function Home() {
 
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          setShowAuthModal(false);
+          setPendingAction(null);
+        }}
+        onSuccess={async () => {
+          if (pendingAction) {
+            await pendingAction();
+            setPendingAction(null);
+          }
+        }}
       />
     </div>
   );
