@@ -44,6 +44,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         login(data.register.user, data.register.accessToken);
         toast.success("Welcome to LuckyRoom! 🎉");
         onClose();
+        // Reload to apply new token to Apollo Client
+        window.location.reload();
       }
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
