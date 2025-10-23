@@ -169,7 +169,31 @@ export default function RoomPage() {
 
   if (!isAuthenticated) {
     return (
-      <AuthModal isOpen={showAuthModal} onClose={() => router.push("/")} />
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => router.push("/")}
+        onSuccess={async () => {
+          // Reload room after login
+          setLoading(true);
+          try {
+            const { data } = await apolloClient.query({
+              query: GET_ROOM,
+              variables: { id: roomId },
+              fetchPolicy: "network-only",
+            });
+
+            if (data?.room) {
+              setCurrentRoom(data.room);
+              await loadOrCreateWheel(roomId);
+            }
+          } catch (error: any) {
+            toast.error(error.message || "Failed to load room");
+            router.push("/");
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
     );
   }
 
