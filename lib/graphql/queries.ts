@@ -144,6 +144,26 @@ export const GET_WHEEL = gql`
   }
 `;
 
+export const GET_WHEEL_BY_ROOM = gql`
+  query GetWheelByRoom($roomId: ID!) {
+    wheelByRoom(roomId: $roomId) {
+      _id
+      roomId
+      title
+      segments {
+        id
+        text
+        color
+        weight
+        order
+        icon
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const GET_SPIN_HISTORY = gql`
   query GetSpinHistory($input: GetHistoryInput!) {
     spinHistory(input: $input) {

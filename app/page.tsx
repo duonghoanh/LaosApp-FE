@@ -19,7 +19,8 @@ export default function Home() {
   const router = useRouter();
 
   const handleCreateRoom = async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
+      toast.error("Please login first");
       setShowAuthModal(true);
       return;
     }
@@ -46,6 +47,7 @@ export default function Home() {
         router.push(`/room/${data.createRoom._id}`);
       }
     } catch (error: any) {
+      console.error("Create room error:", error);
       toast.error(error.message || "Failed to create room");
     } finally {
       setLoading(false);
@@ -53,7 +55,8 @@ export default function Home() {
   };
 
   const handleJoinRoom = async () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
+      toast.error("Please login first");
       setShowAuthModal(true);
       return;
     }
@@ -80,6 +83,7 @@ export default function Home() {
         router.push(`/room/${data.joinRoom._id}`);
       }
     } catch (error: any) {
+      console.error("Join room error:", error);
       toast.error(error.message || "Failed to join room");
     } finally {
       setLoading(false);

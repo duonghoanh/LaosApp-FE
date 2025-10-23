@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apolloClient } from "@/lib/graphql/client";
-import { GET_ROOM, GET_WHEEL, CREATE_WHEEL } from "@/lib/graphql/queries";
+import {
+  GET_ROOM,
+  GET_WHEEL_BY_ROOM,
+  CREATE_WHEEL,
+} from "@/lib/graphql/queries";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRoomStore } from "@/stores/room.store";
 import { useWheelStore } from "@/stores/wheel.store";
@@ -46,6 +50,25 @@ export default function RoomPage() {
   const { spin } = useWheelSocket(roomId);
   useChatSocket(roomId);
 
+  // Helper function to load or create wheel
+  const loadOrCreateWheel = async (roomId: string) => {
+    try {
+      // Try to get existing wheel for room
+      const wheelData = await apolloClient.query({
+        query: GET_WHEEL_BY_ROOM,
+        variables: { roomId },
+        fetchPolicy: "no-cache",
+      });
+
+      if (wheelData?.data?.wheelByRoom) {
+        setCurrentWheel(wheelData.data.wheelByRoom);
+      }
+    } catch (error) {
+      // If no wheel exists, create default one
+      await createDefaultWheel();
+    }
+  };
+
   // Check authentication
   useEffect(() => {
     if (!isAuthenticated) {
@@ -59,26 +82,15 @@ export default function RoomPage() {
       try {
         const { data } = await apolloClient.query({
           query: GET_ROOM,
-          variables: { roomId },
+          variables: { id: roomId },
+          fetchPolicy: "network-only",
         });
 
         if (data?.room) {
           setCurrentRoom(data.room);
 
-          // Load wheel if exists
-          if (data.room.currentWheelId) {
-            const wheelData = await apolloClient.query({
-              query: GET_WHEEL,
-              variables: { wheelId: data.room.currentWheelId },
-            });
-
-            if (wheelData?.data?.wheel) {
-              setCurrentWheel(wheelData.data.wheel);
-            }
-          } else {
-            // Create default wheel
-            await createDefaultWheel();
-          }
+          // Try to load or create wheel
+          await loadOrCreateWheel(roomId);
         }
       } catch (error: any) {
         toast.error(error.message || "Failed to load room");
@@ -134,7 +146,7 @@ export default function RoomPage() {
     if (currentSpin && currentWheel) {
       const segments = currentWheel.segments;
       const winnerIndex = segments.findIndex(
-        (s) => s._id === currentSpin.winnerId
+        (s) => s.id === currentSpin.segmentId
       );
 
       if (winnerIndex !== -1) {
@@ -149,7 +161,7 @@ export default function RoomPage() {
   const handleSpinComplete = () => {
     endSpin();
     if (currentSpin) {
-      toast.success(`Winner: ${currentSpin.winner.text}! 🎉`, {
+      toast.success(`Winner: ${currentSpin.result}! 🎉`, {
         duration: 5000,
       });
     }
@@ -241,11 +253,8 @@ export default function RoomPage() {
                       {currentSpin.spinnerNickname}
                     </span>
                   </span>
-                  <span
-                    className="text-xl font-bold"
-                    style={{ color: currentSpin.winner.color }}
-                  >
-                    {currentSpin.winner.text}
+                  <span className="text-xl font-bold text-purple-600">
+                    {currentSpin.result}
                   </span>
                 </div>
               </div>
