@@ -18,7 +18,7 @@ export interface User {
   _id: string;
   email?: string;
   nickname: string;
-  avatarUrl?: string;
+  avatar?: string;
   createdAt: string;
 }
 
@@ -31,12 +31,12 @@ export interface Participant {
 }
 
 export interface WheelSegment {
-  _id?: string;
+  id?: string;
   text: string;
   color: string;
   weight: number;
   order: number;
-  iconUrl?: string;
+  icon?: string;
 }
 
 export interface Wheel {
@@ -52,11 +52,10 @@ export interface Room {
   _id: string;
   code: string;
   name: string;
-  ownerId: string;
+  hostId: string;
   isPublic: boolean;
-  status: RoomStatus;
+  isActive: boolean;
   participants: Participant[];
-  currentWheelId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,21 +64,24 @@ export interface SpinResult {
   _id: string;
   roomId: string;
   wheelId: string;
-  winnerId: string;
-  winner: WheelSegment;
-  seed: number;
+  spinnerId: string;
   spinnerNickname: string;
-  timestamp: string;
+  result: string;
+  segmentId: string;
+  seed: number;
+  rotation: number;
+  spunAt: string;
 }
 
 export interface ChatMessage {
   _id: string;
   roomId: string;
-  userId: string;
-  nickname: string;
+  userId?: string;
+  nickname?: string;
   content: string;
-  type: "MESSAGE" | "EMOJI";
-  timestamp: string;
+  type: "TEXT" | "SYSTEM" | "SPIN_RESULT" | "USER_JOINED" | "USER_LEFT";
+  emoji?: string;
+  createdAt: string;
 }
 
 export interface SpinStatistics {

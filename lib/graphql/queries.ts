@@ -7,7 +7,7 @@ export const REGISTER = gql`
         _id
         email
         nickname
-        avatarUrl
+        avatar
       }
       accessToken
     }
@@ -20,7 +20,7 @@ export const GET_ME = gql`
       _id
       email
       nickname
-      avatarUrl
+      avatar
       createdAt
     }
   }
@@ -32,9 +32,9 @@ export const CREATE_ROOM = gql`
       _id
       code
       name
-      ownerId
+      hostId
       isPublic
-      status
+      isActive
       participants {
         userId
         nickname
@@ -52,36 +52,34 @@ export const JOIN_ROOM = gql`
       _id
       code
       name
-      ownerId
+      hostId
       isPublic
-      status
+      isActive
       participants {
         userId
         nickname
         role
         status
       }
-      currentWheelId
     }
   }
 `;
 
 export const GET_ROOM = gql`
-  query GetRoom($roomId: String!) {
-    room(roomId: $roomId) {
+  query GetRoom($id: ID!) {
+    room(id: $id) {
       _id
       code
       name
-      ownerId
+      hostId
       isPublic
-      status
+      isActive
       participants {
         userId
         nickname
         role
         status
       }
-      currentWheelId
       createdAt
       updatedAt
     }
@@ -95,12 +93,12 @@ export const CREATE_WHEEL = gql`
       roomId
       title
       segments {
-        _id
+        id
         text
         color
         weight
         order
-        iconUrl
+        icon
       }
       createdAt
     }
@@ -114,12 +112,12 @@ export const UPDATE_WHEEL = gql`
       roomId
       title
       segments {
-        _id
+        id
         text
         color
         weight
         order
-        iconUrl
+        icon
       }
       updatedAt
     }
@@ -127,18 +125,18 @@ export const UPDATE_WHEEL = gql`
 `;
 
 export const GET_WHEEL = gql`
-  query GetWheel($wheelId: String!) {
-    wheel(wheelId: $wheelId) {
+  query GetWheel($id: ID!) {
+    wheel(id: $id) {
       _id
       roomId
       title
       segments {
-        _id
+        id
         text
         color
         weight
         order
-        iconUrl
+        icon
       }
       createdAt
       updatedAt
@@ -152,21 +150,20 @@ export const GET_SPIN_HISTORY = gql`
       _id
       roomId
       wheelId
-      winnerId
-      winner {
-        text
-        color
-      }
-      seed
+      spinnerId
       spinnerNickname
-      timestamp
+      result
+      segmentId
+      seed
+      rotation
+      spunAt
     }
   }
 `;
 
 export const GET_STATISTICS = gql`
-  query GetStatistics($roomId: String!, $wheelId: String) {
-    statistics(roomId: $roomId, wheelId: $wheelId) {
+  query GetStatistics($roomId: ID!) {
+    roomStatistics(roomId: $roomId) {
       totalSpins
       segmentStats {
         segmentId
