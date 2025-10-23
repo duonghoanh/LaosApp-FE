@@ -7,6 +7,7 @@ import {
   GET_ROOM,
   GET_WHEEL_BY_ROOM,
   CREATE_WHEEL,
+  UPDATE_WHEEL,
 } from "@/lib/graphql/queries";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRoomStore } from "@/stores/room.store";
@@ -18,6 +19,7 @@ import { Wheel } from "@/components/Wheel";
 import { ChatBox } from "@/components/ChatBox";
 import { ParticipantsList } from "@/components/ParticipantsList";
 import { AuthModal } from "@/components/AuthModal";
+import { SettingsModal } from "@/components/SettingsModal";
 import { generateRandomSeed } from "@/lib/utils";
 import { RoomRole, WheelSegment } from "@/types";
 import toast from "react-hot-toast";
@@ -43,6 +45,7 @@ export default function RoomPage() {
     useWheelStore();
 
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [targetRotation, setTargetRotation] = useState(0);
 
@@ -167,6 +170,35 @@ export default function RoomPage() {
     }
   };
 
+  const handleSaveSettings = async (segments: WheelSegment[]) => {
+    if (!currentWheel) return;
+
+    const { data } = await apolloClient.mutate({
+      mutation: UPDATE_WHEEL,
+      variables: {
+        input: {
+          id: currentWheel._id,
+          segments: segments.map((seg) => ({
+            text: seg.text,
+            color: seg.color,
+            weight: seg.weight,
+            order: seg.order,
+            icon: seg.icon,
+          })),
+        },
+      },
+    });
+
+    if (data?.updateWheel) {
+      setCurrentWheel(data.updateWheel);
+    }
+  };
+
+  const isHost =
+    currentRoom && user
+      ? participants.find((p) => p.userId === user._id)?.role === RoomRole.HOST
+      : false;
+
   if (!isAuthenticated) {
     return (
       <AuthModal
@@ -222,7 +254,10 @@ export default function RoomPage() {
             {currentRoom?.name || "Room"}
           </h1>
 
-          <button className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors">
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors"
+          >
             <FaCog />
             Settings
           </button>
@@ -291,6 +326,17 @@ export default function RoomPage() {
           </div>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {currentWheel && (
+        <SettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          currentSegments={currentWheel.segments}
+          onSave={handleSaveSettings}
+          isHost={isHost}
+        />
+      )}
     </div>
   );
 }
