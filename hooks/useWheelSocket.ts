@@ -11,12 +11,23 @@ export function useWheelSocket(roomId: string | null) {
   const { user } = useAuthStore();
 
   useEffect(() => {
-    if (!roomId || !user) return;
+    if (!roomId || !user) {
+      console.log("useWheelSocket: Missing roomId or user", {
+        roomId,
+        user: !!user,
+      });
+      return;
+    }
 
     const socket = socketRef.current;
 
+    console.log("useWheelSocket: Joining wheel room", {
+      roomId,
+      userId: user._id,
+    });
+
     // Join wheel room
-    socket.emit("joinRoom", { roomId, userId: user._id });
+    socket.emit("joinWheelRoom", { roomId, userId: user._id });
 
     // Listen for spin events
     socket.on(
@@ -36,19 +47,23 @@ export function useWheelSocket(roomId: string | null) {
     });
 
     socket.on("spinEnded", () => {
+      console.log("Spin ended");
       endSpin();
     });
 
     socket.on("wheelUpdated", (data: { segments: any[] }) => {
+      console.log("Wheel updated:", data);
       updateSegments(data.segments);
       toast.success("Wheel updated");
     });
 
     socket.on("error", (error: { message: string }) => {
+      console.error("Wheel socket error:", error);
       toast.error(error.message);
     });
 
     return () => {
+      console.log("useWheelSocket: Leaving wheel room", { roomId });
       socket.emit("leaveRoom", { roomId });
       socket.off("spinStarted");
       socket.off("spinResult");
@@ -60,6 +75,12 @@ export function useWheelSocket(roomId: string | null) {
 
   const spin = (wheelId: string, seed: number) => {
     const socket = socketRef.current;
+    console.log("Emitting spin event:", {
+      roomId,
+      wheelId,
+      seed,
+      spinnerNickname: user?.nickname || "Anonymous",
+    });
     socket.emit("spin", {
       roomId,
       wheelId,

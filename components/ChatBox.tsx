@@ -44,32 +44,37 @@ export function ChatBox({ roomId }: ChatBoxProps) {
             <p>No messages yet. Start the conversation! 💬</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div
-              key={msg._id}
-              className={`flex flex-col ${
-                msg.type === "EMOJI" ? "items-center" : "items-start"
-              }`}
-            >
-              {msg.type === "EMOJI" ? (
-                <div className="text-4xl animate-bounce">{msg.content}</div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm text-purple-600">
-                      {msg.nickname}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {format(new Date(msg.timestamp), "HH:mm")}
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 rounded-lg px-3 py-2 max-w-[80%]">
-                    <p className="text-sm">{msg.content}</p>
-                  </div>
-                </>
-              )}
-            </div>
-          ))
+          messages.map((msg) => {
+            // Check if message is just an emoji (for special rendering)
+            const isEmoji = /^[\p{Emoji}]+$/u.test(msg.content);
+
+            return (
+              <div
+                key={msg._id}
+                className={`flex flex-col ${
+                  isEmoji ? "items-center" : "items-start"
+                }`}
+              >
+                {isEmoji ? (
+                  <div className="text-4xl animate-bounce">{msg.content}</div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-sm text-purple-600">
+                        {msg.nickname}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {format(new Date(msg.createdAt), "HH:mm")}
+                      </span>
+                    </div>
+                    <div className="bg-gray-100 rounded-lg px-3 py-2 max-w-[80%]">
+                      <p className="text-sm">{msg.content}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })
         )}
         <div ref={messagesEndRef} />
       </div>

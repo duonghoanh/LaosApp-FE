@@ -7,15 +7,30 @@ class SocketClient {
   private chatSocket: Socket | null = null;
 
   connect(namespace: string = ""): Socket {
-    const url = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:20251";
+    const url = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:5002";
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("accessToken")
         : null;
 
+    console.log(`Connecting to socket: ${url}${namespace}`);
+    console.log(`Token: ${token ? "✓" : "✗"}`);
+
     const socket = io(`${url}${namespace}`, {
       auth: { token },
       transports: ["websocket", "polling"],
+    });
+
+    socket.on("connect", () => {
+      console.log(`✓ Connected to ${namespace || "main"} socket`);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`✗ Disconnected from ${namespace || "main"} socket`);
+    });
+
+    socket.on("error", (error) => {
+      console.error(`Socket error on ${namespace}:`, error);
     });
 
     return socket;
